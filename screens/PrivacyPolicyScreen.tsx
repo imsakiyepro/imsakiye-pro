@@ -24,7 +24,7 @@ export default function PrivacyPolicyScreen({ navigation }: any) {
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
             >
-                <Text style={styles.lastUpdated}>Son Güncelleme: 17 Ocak 2026</Text>
+
 
                 <Text style={styles.sectionTitle}>1. Genel Bilgiler</Text>
                 <Text style={styles.paragraph}>
@@ -33,7 +33,7 @@ export default function PrivacyPolicyScreen({ navigation }: any) {
 
                 <Text style={styles.boldText}>Veri Sorumlusu Bilgileri:</Text>
                 <Text style={styles.paragraph}>• Ad/Unvan: UMUT DEMİRCİ</Text>
-                <Text style={styles.paragraph}>• E-posta: umtdmrcix@gmail.com</Text>
+                <Text style={styles.paragraph}>• E-posta: info@akdemyazilim.com</Text>
 
                 <Text style={styles.sectionTitle}>2. Toplanan Kişisel Veriler</Text>
 
@@ -82,7 +82,7 @@ export default function PrivacyPolicyScreen({ navigation }: any) {
                 <Text style={styles.paragraph}>• İtiraz Hakkı: Kişisel verilerinizin işlenmesine itiraz etme</Text>
 
                 <Text style={styles.paragraph}>
-                    <Text style={styles.boldText}>Başvuru:</Text> umtdmrcix@gmail.com
+                    <Text style={styles.boldText}>Başvuru:</Text> info@akdemyazilim.com
                 </Text>
                 <Text style={styles.paragraph}>
                     <Text style={styles.boldText}>Yanıt Süresi:</Text> En geç 30 gün
@@ -101,7 +101,7 @@ export default function PrivacyPolicyScreen({ navigation }: any) {
                 <Text style={styles.paragraph}>Gizlilik: firebase.google.com/support/privacy</Text>
 
                 <Text style={styles.sectionTitle}>6. İletişim</Text>
-                <Text style={styles.paragraph}>E-posta: umtdmrcix@gmail.com</Text>
+                <Text style={styles.paragraph}>E-posta: info@akdemyazilim.com</Text>
                 <Text style={styles.paragraph}>Veri Sorumlusu: UMUT DEMİRCİ</Text>
 
                 <Text style={styles.footer}>Yürürlük Tarihi: 17 Ocak 2026</Text>

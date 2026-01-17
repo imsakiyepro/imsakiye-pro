@@ -58,9 +58,9 @@ When updating these documents:
 
 - **App Store Requirement:** Apple requires a public URL for privacy policy BEFORE submission
 - **KVKK Compliance:** All privacy policies must be accessible and understandable
-- **User Rights:** Users can exercise their KVKK/GDPR rights by emailing umtdmrcix@gmail.com
+- **User Rights:** Users can exercise their KVKK/GDPR rights by emailing info@akdemyazilim.com
 - **30-Day Response:** All data subject requests must be answered within 30 days
 
 ## Contact
 
-For legal inquiries: umtdmrcix@gmail.com
+For legal inquiries: info@akdemyazilim.com

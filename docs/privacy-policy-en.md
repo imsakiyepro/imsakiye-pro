@@ -8,7 +8,7 @@
 
 **Data Controller:**
 - **Name:** UMUT DEMİRCİ
-- **Email:** umtdmrcix@gmail.com
+- **Email:** info@akdemyazilim.com
 
 ## 2. Personal Data We Collect
 
@@ -65,7 +65,7 @@ Under GDPR, you have the following rights:
 - **Right to Data Portability:** Receive your data in a structured format
 - **Right to Withdraw Consent:** Withdraw consent at any time
 
-**How to Exercise:** Email umtdmrcix@gmail.com
+**How to Exercise:** Email info@akdemyazilim.com
 
 **Response Time:** We will respond to your request within 30 days.
 
@@ -110,7 +110,7 @@ This Privacy Policy may be updated as necessary. Significant changes will be com
 ## 10. Contact Us
 
 For questions about this Privacy Policy:
-- **Email:** umtdmrcix@gmail.com
+- **Email:** info@akdemyazilim.com
 - **Data Controller:** UMUT DEMİRCİ
 
 ## 11. Legal Notice

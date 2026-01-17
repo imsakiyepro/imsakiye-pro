@@ -82,7 +82,7 @@ Uygulama "hesap" sistemi kullanmamaktadır. Tüm verileriniz cihazınızda yerel
 
 ### 6.2 Sunucu Verilerinin Silinmesi
 
-Sunucuda sadece anonim istatistikler saklandığı için, hiçbir kişisel veri silinmesine gerek yoktur. Ancak bildirim token'ınızın silinmesini istiyorsanız, umtdmrcix@gmail.com adresine yazabilirsiniz.
+Sunucuda sadece anonim istatistikler saklandığı için, hiçbir kişisel veri silinmesine gerek yoktur. Ancak bildirim token'ınızın silinmesini istiyorsanız, info@akdemyazilim.com adresine yazabilirsiniz.
 
 ## 7. Hizmet Değişiklikleri
 
@@ -111,7 +111,7 @@ Bu Kullanım Şartları, Türkiye Cumhuriyeti yasalarına tabidir. Anlaşmazlık
 ## 11. İletişim
 
 Kullanım şartları ile ilgili sorularınız için:
-- **E-posta:** umtdmrcix@gmail.com
+- **E-posta:** info@akdemyazilim.com
 
 ## 12. Değişiklikler
 

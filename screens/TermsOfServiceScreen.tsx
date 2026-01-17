@@ -24,7 +24,7 @@ export default function TermsOfServiceScreen({ navigation }: any) {
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
             >
-                <Text style={styles.lastUpdated}>Son Güncelleme: 17 Ocak 2026</Text>
+
 
                 <Text style={styles.sectionTitle}>1. Kabul ve Onay</Text>
                 <Text style={styles.paragraph}>
@@ -107,7 +107,7 @@ export default function TermsOfServiceScreen({ navigation }: any) {
                 </Text>
 
                 <Text style={styles.sectionTitle}>11. İletişim</Text>
-                <Text style={styles.paragraph}>E-posta: umtdmrcix@gmail.com</Text>
+                <Text style={styles.paragraph}>E-posta: info@akdemyazilim.com</Text>
 
                 <Text style={styles.footer}>Yürürlük Tarihi: 17 Ocak 2026 • Version: 1.0</Text>
 

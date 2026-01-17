@@ -8,7 +8,7 @@
 
 **Veri Sorumlusu Bilgileri:**
 - **Ad/Unvan:** UMUT DEMİRCİ
-- **E-posta:** umtdmrcix@gmail.com
+- **E-posta:** info@akdemyazilim.com
 
 ## 2. Toplanan Kişisel Veriler
 
@@ -64,7 +64,7 @@ KVKK kapsamında aşağıdaki haklara sahipsiniz:
 - **Silme Hakkı:** Verilerinizin silinmesini talep etme
 - **İtiraz Hakkı:** Kişisel verilerinizin işlenmesine itiraz etme
 
-**Başvuru Yöntemi:** umtdmrcix@gmail.com adresine yazılı olarak başvurabilirsiniz.
+**Başvuru Yöntemi:** info@akdemyazilim.com adresine yazılı olarak başvurabilirsiniz.
 
 **Yanıt Süresi:** Başvurularınız en geç 30 gün içinde yanıtlanacaktır (KVKK Madde 13).
 
@@ -105,7 +105,7 @@ Bu Gizlilik Politikası gerektiğinde güncellenebilir. Önemli değişiklikler 
 ## 9. İletişim
 
 Gizlilik politikası ile ilgili sorularınız için:
-- **E-posta:** umtdmrcix@gmail.com
+- **E-posta:** info@akdemyazilim.com
 - **Veri Sorumlusu:** UMUT DEMİRCİ
 
 ## 10. Yasal Uyarı

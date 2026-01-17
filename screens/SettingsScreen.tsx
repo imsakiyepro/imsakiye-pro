@@ -116,6 +116,7 @@ interface SettingRowProps {
     isSwitch?: boolean;
     subtitle?: string | null;
     onPress?: () => void;
+    onLongPress?: () => void;
     disabled?: boolean;
 }
 
@@ -127,6 +128,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
     isSwitch = false,
     subtitle = null,
     onPress,
+    onLongPress,
     disabled = false,
 }) => {
     const rowStyle = [styles.row, disabled && { opacity: 0.5 }];
@@ -165,6 +167,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
         <TouchableOpacity
             activeOpacity={0.7}
             onPress={disabled ? undefined : onPress}
+            onLongPress={disabled ? undefined : onLongPress}
             style={rowStyle}
         >
             <View style={styles.rowLeft}>
@@ -425,18 +428,18 @@ export default function SettingsScreen() {
                         <SettingRow
                             icon="shield-checkmark-outline"
                             title="Gizlilik Politikası"
-                            subtitle="Veri koruma ve gizlilik"
+                            subtitle="Veri koruma ve gizlilik • Uzun basınca web'de aç"
                             onPress={() => navigation.navigate("PrivacyPolicy")}
-                        // URL (GitHub Pages): https://imsakiyepro.github.io/imsakiye-pro/privacy-policy-tr
+                            onLongPress={() => Linking.openURL("https://imsakiyepro.github.io/imsakiye-pro/privacy-policy-tr")}
                         />
 
                         <View style={styles.separator} />
                         <SettingRow
                             icon="document-text-outline"
                             title="Kullanım Şartları"
-                            subtitle="Hizmet kullanım koşulları"
+                            subtitle="Hizmet koşulları • Uzun basınca web'de aç"
                             onPress={() => navigation.navigate("TermsOfService")}
-                        // URL (GitHub Pages): https://imsakiyepro.github.io/imsakiye-pro/terms-of-service-tr
+                            onLongPress={() => Linking.openURL("https://imsakiyepro.github.io/imsakiye-pro/terms-of-service-tr")}
                         />
 
                         {/* GİZLİ ADMIN BUTONU (Sadece Adminler Görür) */}
