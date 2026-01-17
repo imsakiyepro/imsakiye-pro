@@ -70,12 +70,20 @@ export const PrayerStatsService = {
         const todayId = getTodayId();
         const docRef = doc(db, "daily_stats", todayId);
 
-        return onSnapshot(docRef, (docSnap) => {
-            if (docSnap.exists()) {
-                callback(docSnap.data() as DailyStats);
-            } else {
+        return onSnapshot(
+            docRef,
+            (docSnap) => {
+                if (docSnap.exists()) {
+                    callback(docSnap.data() as DailyStats);
+                } else {
+                    callback({});
+                }
+            },
+            (error) => {
+                // Offline durumunda sessizce boş data döndür
+                console.warn("Prayer stats listener error (offline?):", error);
                 callback({});
             }
-        });
+        );
     },
 };

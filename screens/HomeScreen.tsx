@@ -381,69 +381,76 @@ export default function HomeScreen() {
       orderBy("scheduledAt", "asc")
     );
 
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
-      if (snapshot.empty) return;
+    const unsubscribe = onSnapshot(
+      q,
+      async (snapshot) => {
+        if (snapshot.empty) return;
 
-      const scheduledIdsStr = await AsyncStorage.getItem("scheduled_notif_ids");
-      const scheduledIds = scheduledIdsStr ? JSON.parse(scheduledIdsStr) : [];
-      let updatedIds = [...scheduledIds];
-      let hasChanges = false;
+        const scheduledIdsStr = await AsyncStorage.getItem("scheduled_notif_ids");
+        const scheduledIds = scheduledIdsStr ? JSON.parse(scheduledIdsStr) : [];
+        let updatedIds = [...scheduledIds];
+        let hasChanges = false;
 
-      for (const doc of snapshot.docs) {
-        const data = doc.data();
-        const docId = doc.id;
+        for (const doc of snapshot.docs) {
+          const data = doc.data();
+          const docId = doc.id;
 
-        // Zaten zamanlandıysa atla
-        if (scheduledIds.includes(docId)) continue;
+          // Zaten zamanlandıysa atla
+          if (scheduledIds.includes(docId)) continue;
 
-        const scheduledTime =
-          data.scheduledAt instanceof Timestamp
-            ? data.scheduledAt.toDate()
-            : new Date();
+          const scheduledTime =
+            data.scheduledAt instanceof Timestamp
+              ? data.scheduledAt.toDate()
+              : new Date();
 
-        const now = new Date();
+          const now = new Date();
 
-        // Eğer zamanı geldiyse veya geçtiyse (but not too old) -> SHOW IMMEDIATELY
-        if (scheduledTime <= now) {
-          // Show immediately (Banner or Modal)
-          if (data.displayType === "banner") {
-            await Notifications.scheduleNotificationAsync({
-              content: { title: data.title, body: data.body, sound: true },
-              trigger: null,
-            });
-          } else {
-            // If modal, set to state
-            setTargetNotification({ title: data.title, body: data.body });
-            setShowNotificationModal(true);
-            Animated.spring(scaleAnim, { toValue: 1, friction: 6, useNativeDriver: true }).start();
+          // Eğer zamanı geldiyse veya geçtiyse (but not too old) -> SHOW IMMEDIATELY
+          if (scheduledTime <= now) {
+            // Show immediately (Banner or Modal)
+            if (data.displayType === "banner") {
+              await Notifications.scheduleNotificationAsync({
+                content: { title: data.title, body: data.body, sound: true },
+                trigger: null,
+              });
+            } else {
+              // If modal, set to state
+              setTargetNotification({ title: data.title, body: data.body });
+              setShowNotificationModal(true);
+              Animated.spring(scaleAnim, { toValue: 1, friction: 6, useNativeDriver: true }).start();
+            }
           }
-        }
-        // If in the FUTURE -> SCHEDULE LOCALLY (works when app is closed)
-        else {
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: data.title,
-              body: data.body,
-              sound: true,
-              data: { displayType: data.displayType }, // Data payload
-            },
-            trigger: {
-              type: Notifications.SchedulableTriggerInputTypes.DATE,
-              date: scheduledTime
-            },
-          });
-          console.log(`Bildirim zamanlandı: ${data.title} -> ${scheduledTime}`);
+          // If in the FUTURE -> SCHEDULE LOCALLY (works when app is closed)
+          else {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: data.title,
+                body: data.body,
+                sound: true,
+                data: { displayType: data.displayType }, // Data payload
+              },
+              trigger: {
+                type: Notifications.SchedulableTriggerInputTypes.DATE,
+                date: scheduledTime
+              },
+            });
+            console.log(`Bildirim zamanlandı: ${data.title} -> ${scheduledTime}`);
+          }
+
+          // Add ID to list
+          updatedIds.push(docId);
+          hasChanges = true;
         }
 
-        // Add ID to list
-        updatedIds.push(docId);
-        hasChanges = true;
+        if (hasChanges) {
+          await AsyncStorage.setItem("scheduled_notif_ids", JSON.stringify(updatedIds));
+        }
+      },
+      (error) => {
+        // Offline veya network hatalarında sessizce devam et
+        console.warn("Global notification listener error (offline?):", error);
       }
-
-      if (hasChanges) {
-        await AsyncStorage.setItem("scheduled_notif_ids", JSON.stringify(updatedIds));
-      }
-    });
+    );
 
     return () => unsubscribe();
   }, []);
