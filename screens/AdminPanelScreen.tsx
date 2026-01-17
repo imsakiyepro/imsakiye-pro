@@ -193,6 +193,8 @@ const AdminPanelScreen = () => {
     </View>
   );
 
+
+
   const renderMyIdCard = () => (
     <View style={styles.card}>
       <View style={styles.cardTopRow}>
@@ -314,7 +316,10 @@ const AdminPanelScreen = () => {
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: hp(2) }}>
         <TouchableOpacity
           style={[styles.inputBox, { flex: 0.48, marginBottom: 0, justifyContent: "center" }]}
-          onPress={() => setShowDatePicker(true)}
+          onPress={() => {
+            setShowDatePicker(!showDatePicker);
+            setShowTimePicker(false);
+          }}
         >
           <Ionicons name="calendar-outline" size={20} color={THEME.textSec} style={{ marginRight: 8 }} />
           <Text style={{ color: "#FFF", fontSize: rf(13) }}>
@@ -324,7 +329,10 @@ const AdminPanelScreen = () => {
 
         <TouchableOpacity
           style={[styles.inputBox, { flex: 0.48, marginBottom: 0, justifyContent: "center" }]}
-          onPress={() => setShowTimePicker(true)}
+          onPress={() => {
+            setShowTimePicker(!showTimePicker);
+            setShowDatePicker(false);
+          }}
         >
           <Ionicons name="time-outline" size={20} color={THEME.textSec} style={{ marginRight: 8 }} />
           <Text style={{ color: "#FFF", fontSize: rf(13) }}>
@@ -402,9 +410,6 @@ const AdminPanelScreen = () => {
     <View style={{ flex: 1, backgroundColor: THEME.bg }}>
       <StatusBar barStyle="light-content" backgroundColor={THEME.bg} />
 
-      {/* KeyboardAvoidingView: Klavye açılınca ekranı iter.
-        behavior: iOS için padding, Android için height en iyi sonuç verir.
-      */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -416,7 +421,7 @@ const AdminPanelScreen = () => {
             { paddingTop: insets.top + 20 },
           ]}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled" // Klavye açıkken butona basılabilmesini sağlar
+          keyboardShouldPersistTaps="handled"
         >
           {renderHeader()}
           {renderMyIdCard()}
@@ -430,13 +435,17 @@ const AdminPanelScreen = () => {
               mode="date"
               display="default"
               onChange={(event: any, selectedDate?: Date) => {
-                setShowDatePicker(false);
+                // iOS'te anında kapanmasın, Android'de kapansın
+                if (Platform.OS === 'android') {
+                  setShowDatePicker(false);
+                }
                 if (selectedDate) {
                   const newDate = new Date(date);
                   newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
                   setDate(newDate);
                 }
               }}
+              style={Platform.OS === "ios" ? { marginBottom: 10, alignSelf: "center" } : undefined}
             />
           )}
 
@@ -444,15 +453,20 @@ const AdminPanelScreen = () => {
             <DateTimePicker
               value={date}
               mode="time"
-              display="default"
+              display="spinner" // Spinner iOS için daha kullanışlı olabilir modal gibi duruyorsa
               onChange={(event: any, selectedDate?: Date) => {
-                setShowTimePicker(false);
+                // iOS'te anında kapanmasın, Android'de kapansın
+                if (Platform.OS === 'android') {
+                  setShowTimePicker(false);
+                }
                 if (selectedDate) {
                   const newDate = new Date(date);
                   newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes());
                   setDate(newDate);
                 }
               }}
+              textColor="#FFF"
+              style={Platform.OS === "ios" ? { marginBottom: 10, alignSelf: "center" } : undefined}
             />
           )}
 
