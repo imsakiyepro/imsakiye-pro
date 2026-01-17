@@ -1,0 +1,36 @@
+// src/constants/data.ts
+
+export const BG_IMAGE = require("../../assets/mosque-bg.png");
+
+export const DAILY_QUOTES = [
+  "Namaz, müminin miracıdır.",
+  "Oruç tutunuz, sıhhat bulunuz.",
+  "Dua, ibadetin özüdür.",
+  "Temizlik imanın yarısıdır.",
+  "Sabır, kurtuluşun anahtarıdır.",
+  "Allah, sabredenlerle beraberdir.",
+  "Cömertlik, kalpleri yumuşatır.",
+  "Güzel ahlak, cennetin kapısıdır.",
+  "Kardeşlik, İslam'ın temelidir.",
+  "Zikir, ruhun gıdasıdır.",
+  "İlim öğrenmek her Müslüman üzerine farzdır.",
+  "Tevekkül, Allah'a güvenmektir.",
+  "Hakkı söylemek cesaret ister.",
+  "Gönül almak sadakadır.",
+  "Vakit namazları kaçırma.",
+  "Allah'ın rahmeti geniştir.",
+  "Küçük iyilikler büyük sevaptır.",
+  "Gözyaşı tövbenin nişanesidir.",
+  "Dünya fani, ahiret baki.",
+  "Allah yolunda infak edenler kaybetmezler.",
+  "Her zorlukla beraber bir kolaylık vardır.",
+  "İyilik yap denize at, balık bilmezse Halik bilir.",
+  "Kibirden sakın, alçak gönüllülük erdemdir.",
+  "Güzel söz sadakadır.",
+  "Allah, kullarını sever.",
+  "Vakit nakittir, boşa harcama.",
+  "Kardeşine merhamet et ki, Allah da sana merhamet etsin.",
+  "Dünya hayatı bir oyun ve eğlenceden ibarettir.",
+  "Allah'a tevekkül edenler asla yanılmazlar.",
+  "Her nefis ölümü tadacaktır.",
+];
