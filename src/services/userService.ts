@@ -107,17 +107,13 @@ export const syncUserToCloud = async (data: CloudUserData): Promise<void> => {
     // DİKKAT: Burada 'role' alanına dokunmuyoruz.
     // Eğer kullanıcı zaten admin ise, konumu güncellenince adminliği gitmesin.
     const payload = {
-      location: {
-        latitude: data.lat,
-        longitude: data.lon,
-        addressText: `${data.city || ""}, ${data.country || ""} (${data.district || ""
-          })`,
-      },
-      address: {
-        country: data.country || "Bilinmiyor",
-        city: data.city || "Bilinmiyor",
-        district: data.district || "",
-      },
+      /* 
+       * GİZLİLİK GÜNCELLEMESİ: 
+       * Konum bilgisi artık Firebase'e gönderilmiyor.
+       * Sadece deviceId, platform ve son aktif olma zamanı tutuluyor.
+       */
+      // location: { ... },
+      // address: { ... },
       lastActive: serverTimestamp(),
       platform: PLATFORM_NAME,
       deviceModel: Device.modelName || "Generic Device",
