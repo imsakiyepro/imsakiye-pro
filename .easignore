@@ -1,0 +1,14 @@
+node_modules
+node_modules/
+**/node_modules
+**/node_modules/
+.expo/
+dist/
+web-build/
+.DS_Store
+ios/
+android/
+*.ipa
+*.apk
+coverage/
+.git/

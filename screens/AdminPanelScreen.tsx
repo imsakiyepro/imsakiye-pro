@@ -59,6 +59,7 @@ const AdminPanelScreen = () => {
   const [loadingNotif, setLoadingNotif] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [seconds, setSeconds] = useState("00");
 
   // 'modal' = Tam Ekran Kart, 'banner' = Sistem Bildirimi
   const [displayType, setDisplayType] = useState<"modal" | "banner">("modal");
@@ -141,8 +142,13 @@ const AdminPanelScreen = () => {
       return;
     }
 
+    // Tarih + Saniye birleştirme
+    const finalDate = new Date(date);
+    const sec = parseInt(seconds) || 0;
+    finalDate.setSeconds(sec);
+
     // Tarihi kullanıcıya göstermek için formatlayalım
-    const dateStr = date.toLocaleString("tr-TR");
+    const dateStr = finalDate.toLocaleString("tr-TR");
     const typeLabel = displayType === "modal" ? "Tam Ekran KART" : "Sistem BANNER";
 
     Alert.alert(
@@ -158,7 +164,7 @@ const AdminPanelScreen = () => {
             Keyboard.dismiss();
             try {
               // displayType eklendi
-              await sendGlobalNotification(notifTitle, notifBody, date, displayType);
+              await sendGlobalNotification(notifTitle, notifBody, finalDate, displayType);
 
               Alert.alert(
                 "Başarılı",
@@ -167,6 +173,7 @@ const AdminPanelScreen = () => {
               setNotifTitle("");
               setNotifBody("");
               setDate(new Date()); // Tarihi sıfırla
+              setSeconds("00");
             } catch (error: any) {
               Alert.alert("Hata", error.message);
             } finally {
@@ -315,7 +322,7 @@ const AdminPanelScreen = () => {
       {/* DATA & TIME SEÇİCİ */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: hp(2) }}>
         <TouchableOpacity
-          style={[styles.inputBox, { flex: 0.48, marginBottom: 0, justifyContent: "center" }]}
+          style={[styles.inputBox, { flex: 0.4, marginBottom: 0, justifyContent: "center" }]}
           onPress={() => {
             setShowDatePicker(!showDatePicker);
             setShowTimePicker(false);
@@ -328,7 +335,7 @@ const AdminPanelScreen = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.inputBox, { flex: 0.48, marginBottom: 0, justifyContent: "center" }]}
+          style={[styles.inputBox, { flex: 0.35, marginBottom: 0, justifyContent: "center" }]}
           onPress={() => {
             setShowTimePicker(!showTimePicker);
             setShowDatePicker(false);
@@ -339,6 +346,18 @@ const AdminPanelScreen = () => {
             {date.toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </TouchableOpacity>
+
+        <View style={[styles.inputBox, { flex: 0.2, marginBottom: 0, justifyContent: "center", paddingHorizontal: 5 }]}>
+          <Text style={{ color: THEME.textSec, fontSize: rf(12), marginRight: 4 }}>sn:</Text>
+          <TextInput
+            style={{ color: "#FFF", fontSize: rf(13), minWidth: 20, textAlign: "center" }}
+            value={seconds}
+            onChangeText={(text) => setSeconds(text.replace(/[^0-9]/g, '').slice(0, 2))}
+            keyboardType="number-pad"
+            placeholder="00"
+            placeholderTextColor="rgba(255,255,255,0.3)"
+          />
+        </View>
       </View>
 
       <Text style={styles.inputLabel}>Bildirim Başlığı:</Text>

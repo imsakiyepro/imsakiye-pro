@@ -26,6 +26,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo"; // 👈 NetInfo Import
 import * as Updates from "expo-updates";
 import { useNavigation, useFocusEffect } from "@react-navigation/native"; // 👈 useFocusEffect eklendi
 import * as Application from "expo-application";
@@ -218,9 +219,38 @@ export default function SettingsScreen() {
         refreshData,
     } = context;
 
+
+
     const handleResetApp = async () => {
+        const state = await NetInfo.fetch();
+
+        if (!state.isConnected) {
+            Alert.alert(
+                "İnternet Bağlantısı Yok",
+                "İnternet olmadığı için bulut (sunucu) verileriniz silinemez. Sadece bu cihazdaki veriler silinip uygulama sıfırlanacak. Devam edilsin mi?",
+                [
+                    { text: "Vazgeç", style: "cancel" },
+                    {
+                        text: "SADECE CİHAZI SIFIRLA",
+                        style: "destructive",
+                        onPress: async () => {
+                            // Sadece yerel silme (Firebase atla)
+                            try {
+                                const keys = await AsyncStorage.getAllKeys();
+                                if (keys.length > 0) await AsyncStorage.multiRemove(keys);
+                                await Updates.reloadAsync();
+                            } catch (e) {
+                                await Updates.reloadAsync();
+                            }
+                        }
+                    }
+                ]
+            );
+            return;
+        }
+
         Alert.alert(
-            "Hesabı ve Verileri Sil",
+            "Verileri Sil",
             "Bu işlem geri alınamaz. Firebase üzerindeki konum verileriniz ve yerel ayarlarınız kalıcı olarak silinecektir.",
             [
                 { text: "Vazgeç", style: "cancel" },
@@ -244,6 +274,7 @@ export default function SettingsScreen() {
                             await new Promise((resolve) => setTimeout(resolve, 500));
                         } catch (error) {
                             console.log("Firebase silme hatası:", error);
+                            // Online görünüp hata verdiyse uyarıp devam edelim
                             Alert.alert(
                                 "Hata",
                                 "Sunucudan silinemedi, ancak yerel veriler temizlenecek."
@@ -406,7 +437,7 @@ export default function SettingsScreen() {
                         <View style={styles.separator} />
                         <SettingRow
                             icon="trash-outline"
-                            title="Hesabı Sil / Sıfırla"
+                            title="Verileri Sil / Sıfırla"
                             subtitle="Verileri temizle"
                             onPress={handleResetApp}
                         />
