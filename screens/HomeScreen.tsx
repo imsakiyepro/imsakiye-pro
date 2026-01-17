@@ -836,11 +836,13 @@ export default function HomeScreen() {
                       const isNext = targetPrayer && item.name === targetPrayer.name;
                       const isCompleted = completedPrayers.includes(item.name);
                       const globalCount = globalStats[item.name] || 0;
+                      const isGunes = item.name === "Güneş"; // Güneş bir namaz değil
 
                       return (
                         <TouchableOpacity
-                          activeOpacity={0.7}
-                          onPress={() => togglePrayer(item.name)}
+                          activeOpacity={isGunes ? 1 : 0.7} // Güneş için tıklama efekti yok
+                          disabled={isGunes} // Güneş tıklanamaz
+                          onPress={() => !isGunes && togglePrayer(item.name)}
                           style={[
                             styles.card,
                             isNext && {
@@ -852,6 +854,9 @@ export default function HomeScreen() {
                               borderColor: "#10B981", // Green border for completed
                               borderWidth: 1,
                               backgroundColor: "rgba(16, 185, 129, 0.1)"
+                            },
+                            isGunes && {
+                              opacity: 0.6, // Güneş soluk görünsün
                             }
                           ]}
                         >
@@ -874,8 +879,8 @@ export default function HomeScreen() {
                                 >
                                   {item.name}
                                 </Text>
-                                {/* 🔥 GLOBAL SAYAC ROZETİ */}
-                                {(globalCount > 0 || isCompleted) && (
+                                {/* 🔥 GLOBAL SAYAC ROZETİ (Güneş hariç) */}
+                                {!isGunes && (globalCount > 0 || isCompleted) && (
                                   <Text style={{ fontSize: rf(10), color: isCompleted ? "#10B981" : "rgba(255,255,255,0.5)", marginTop: 2 }}>
                                     👥 {globalCount > 0 ? `${globalCount.toLocaleString()} kişi kıldı` : "İlk kılan sen ol!"}
                                   </Text>
