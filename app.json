@@ -82,7 +82,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/logo.png",
+          "icon": "./assets/logo-optimized.png",
           "color": "#D4AF37",
           "defaultChannel": "default"
         }
