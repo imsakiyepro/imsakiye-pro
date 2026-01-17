@@ -22,7 +22,7 @@
       "icon": "./assets/logo-optimized.png",
       "supportsTablet": false,
       "bundleIdentifier": "com.imsakiyepro.imsakiye",
-      "buildNumber": "9",
+      "buildNumber": "1",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "İmsakiye Pro uygulaması, bulunduğunuz konuma özel namaz vakitlerini doğru hesaplayabilmek, Kıble yönünü gösterebilmek ve size en yakın camileri listeleyebilmek için konum bilginizi kullanmak ister. Lütfen konum izni vererek daha iyi bir deneyim elde edin.",
         "NSMotionUsageDescription": "Kıble pusulasının hassas çalışabilmesi için hareket sensörü verilerine erişim izni rica ediyoruz.",
@@ -35,7 +35,7 @@
     },
     "android": {
       "package": "com.imsakiyepro.imsakiye",
-      "versionCode": 9,
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo-optimized.png",
         "backgroundColor": "#05140A"
