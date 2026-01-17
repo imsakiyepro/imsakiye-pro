@@ -102,7 +102,7 @@ const schedulePrayerNotifications = async (
         const itemDate = new Date(year, month - 1, day, 23, 59);
         return itemDate >= now;
       })
-      .slice(0, 10);
+      .slice(0, 3); // 🔥 iOS LİMİTİ: Max 64 bildirim. Günde ~12 bildirim x 3 gün = 36 (Güvenli)
 
     for (const dayData of upcomingDays) {
       const dateStr = dayData.date.gregorian.date;
@@ -122,7 +122,13 @@ const schedulePrayerNotifications = async (
         if (prayerDate <= now) continue;
 
         // --- 1. 15 DAKİKA KALA UYARISI (HER VAKİT İÇİN) ---
-        if (settings.ezan) {
+        // Ezan sesi açıksa veya (özel sahur/iftar açıksa ve o vakitse)
+        const shouldWarn15 =
+          settings.ezan ||
+          (isRamadan && settings.sahur && item.name === "İmsak") ||
+          (isRamadan && settings.iftar && item.name === "Akşam");
+
+        if (shouldWarn15) {
           const fifteenMinBefore = subtractMinutes(prayerDate, 15);
           if (fifteenMinBefore > now) {
             await Notifications.scheduleNotificationAsync({
@@ -131,7 +137,10 @@ const schedulePrayerNotifications = async (
                 body: `${item.name} vaktine son 15 dakika.`,
                 sound: true,
               },
-              trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: fifteenMinBefore },
+              trigger: {
+                type: Notifications.SchedulableTriggerInputTypes.DATE,
+                date: fifteenMinBefore,
+              },
             });
           }
         }
@@ -154,7 +163,7 @@ const schedulePrayerNotifications = async (
               });
             }
           }
-          if (settings.ezan) {
+          if (settings.ezan || (isRamadan && settings.sahur)) {
             title = isRamadan ? "🛑 Niyet Vakti" : "İmsak Vakti";
             body = `Sabahın nuru doğuyor (${item.time}). Yeni güne Bismillah.`;
           }
@@ -174,7 +183,7 @@ const schedulePrayerNotifications = async (
               });
             }
           }
-          if (settings.ezan) {
+          if (settings.ezan || (isRamadan && settings.iftar)) {
             title = isRamadan ? "🤲 İftar Sevinci" : "Akşam Ezanı";
             body = isRamadan
               ? `Oruçunu açma vakti (${item.time}). Allah kabul etsin.`
@@ -212,7 +221,6 @@ const schedulePrayerNotifications = async (
     }
   } catch (error) {
     console.warn("Bildirim Planlama Hatası:", error);
-    // Bildirim hatası kritik değildir, kullanıcıya alert göstermeye gerek yok (sessiz hata).
   }
 };
 
@@ -275,6 +283,7 @@ export const PermissionsProvider = ({ children }: { children: ReactNode }) => {
     try {
       const useGPS = (await AsyncStorage.getItem("settings_gps")) === "true";
 
+      // 1. MANUEL MOD KONTROLÜ
       if (!useGPS) {
         const lat = await AsyncStorage.getItem("manual_lat");
         const lon = await AsyncStorage.getItem("manual_lng");
@@ -290,11 +299,66 @@ export const PermissionsProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
+      // 2. LAST KNOWN LOCATION (Fast Start)
+      // İlk açılışta GPS beklemek yerine en son bilinen konumu döndürüp hemen arayüzü çizelim.
+      const lastLat = await AsyncStorage.getItem("last_known_lat");
+      const lastLon = await AsyncStorage.getItem("last_known_lng");
+      const lastName = await AsyncStorage.getItem("last_known_name");
+
+      // Arka planda GPS güncellemesi yine de çalışsın (Veri taze kalsın)
+      const updateGPSInBackground = async () => {
+        try {
+          const { status } = await Location.getForegroundPermissionsAsync();
+          if (status === "granted") {
+            const loc = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+            });
+            // Ters coğrafi kodlama
+            try {
+              const address = await Location.reverseGeocodeAsync({
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+              });
+              if (address[0]) {
+                const city = address[0].region || address[0].city || "Konum";
+                const district = address[0].district || "";
+                const full = district ? `${city} / ${district}` : city;
+
+                // Yeni konumu kaydet
+                await AsyncStorage.setItem("last_known_lat", String(loc.coords.latitude));
+                await AsyncStorage.setItem("last_known_lng", String(loc.coords.longitude));
+                await AsyncStorage.setItem("last_known_name", full);
+
+                // Eğer lokasyon değiştiyse ve UI henüz güncellemediyse state'i güncellemek gerekebilir
+                // (Burada sadece kaydetmek yeterli, bir sonraki loadData'da veya refreshData'da kullanılır)
+              }
+            } catch (err) { console.warn("Reverse Geo Error", err); }
+          }
+        } catch (e) {
+          console.warn("Background GPS Error", e);
+        }
+      };
+
+      // Eğer kayıtlı son konum varsa, onu hemen döndür (HIZLI AÇILIŞ)
+      if (lastLat && lastLon && lastName && useGPS) {
+        // Arkada güncelleme başlat ama bekleme
+        updateGPSInBackground();
+        setLocationName(lastName);
+        return {
+          lat: parseFloat(lastLat),
+          lon: parseFloat(lastLon),
+          displayName: lastName
+        };
+      }
+
+      // 3. İLK KEZ AÇILIYORSA VEYA KAYIT YOKSA (Mecburen Bekle)
       const { status } = await Location.getForegroundPermissionsAsync();
       if (status === "granted" && useGPS) {
         const loc = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
+
+        let finalName = "GPS Konumu";
         try {
           const address = await Location.reverseGeocodeAsync({
             latitude: loc.coords.latitude,
@@ -303,8 +367,12 @@ export const PermissionsProvider = ({ children }: { children: ReactNode }) => {
           if (address[0]) {
             const city = address[0].region || address[0].city || "Konum";
             const district = address[0].district || "";
-            const full = district ? `${city} / ${district}` : city;
-            setLocationName(full);
+            finalName = district ? `${city} / ${district}` : city;
+
+            // Bulmuşken kaydet
+            await AsyncStorage.setItem("last_known_lat", String(loc.coords.latitude));
+            await AsyncStorage.setItem("last_known_lng", String(loc.coords.longitude));
+            await AsyncStorage.setItem("last_known_name", finalName);
 
             syncUserToCloud({
               lat: loc.coords.latitude,
@@ -313,19 +381,16 @@ export const PermissionsProvider = ({ children }: { children: ReactNode }) => {
               city: city,
               district: district,
             });
-            return {
-              lat: loc.coords.latitude,
-              lon: loc.coords.longitude,
-              displayName: full,
-            };
           }
         } catch (err) {
           console.warn("Geo error", err);
         }
+
+        setLocationName(finalName);
         return {
           lat: loc.coords.latitude,
           lon: loc.coords.longitude,
-          displayName: "GPS Konumu",
+          displayName: finalName,
         };
       }
 
@@ -421,7 +486,7 @@ export const PermissionsProvider = ({ children }: { children: ReactNode }) => {
 
     if (todayData) {
       const hijriMonth = todayData.date.hijri.month.en;
-      const isRam = hijriMonth === "Ramaḍān";
+      const isRam = hijriMonth === "Ramaḍān"; // 👈 ORİJİNAL KONTROL
 
       setIsRamadan(isRam);
 

@@ -328,7 +328,7 @@ const DeveloperTestScreen = () => {
                     sub="Yatsı için prompt açar"
                     icon="checkmark-circle-outline"
                     color="#10B981"
-
+                    onPress={() => navigation.navigate("Home", { testCheckin: "Yatsı" })}
                     badge="YENİ"
                 />
                 <TestButton

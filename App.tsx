@@ -38,6 +38,8 @@ import DeveloperTestScreen from "./screens/DeveloperTestScreen";
 // 👇 EKLENDİ: Admin Panelini import et
 import AdminPanelScreen from "./screens/AdminPanelScreen";
 import QadaScreen from "./screens/QadaScreen"; // New Import
+import PrivacyPolicyScreen from "./screens/PrivacyPolicyScreen";
+import TermsOfServiceScreen from "./screens/TermsOfServiceScreen";
 import { registerBackgroundTask } from "./src/services/backgroundTask";
 
 const { width } = Dimensions.get("window");
@@ -269,6 +271,18 @@ function AppNavigation() {
                 headerStyle: { backgroundColor: "#0f172a" },
                 headerTintColor: "#D4AF37",
               }}
+            />
+
+            {/* Legal Document Screens */}
+            <RootStack.Screen
+              name="PrivacyPolicy"
+              component={PrivacyPolicyScreen}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="TermsOfService"
+              component={TermsOfServiceScreen}
+              options={{ headerShown: false }}
             />
           </RootStack.Navigator>
         </NavigationContainer>

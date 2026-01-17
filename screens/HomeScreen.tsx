@@ -81,6 +81,7 @@ export default function HomeScreen() {
   const [progress, setProgress] = useState(0);
   const [iftarTime, setIftarTime] = useState("--:--");
   const [isRamadan, setIsRamadan] = useState(false);
+  const [activeDayLabel, setActiveDayLabel] = useState("Bugün"); // "Bugün", "Dün", veya tarih
 
   // --- 🔥 GLOBAL COUNTER STATE ---
   const [globalStats, setGlobalStats] = useState<any>({});
@@ -147,12 +148,26 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadCompletedPrayers();
+    loadDismissedCheckins();
   }, [prayerTimes]); // Vakitler değişince (yeni gün) tekrar yükle
 
   const loadCompletedPrayers = async () => {
     try {
-      const todayStr = getFormattedDate(); // dd.mm.yyyy formatında varsayıyoruz veya global tarih
-      const key = `completed_prayers_${todayStr}`;
+      let targetDateStr = getFormattedDate();
+
+      // 🔥 "AKTİF GÜN" KURALI: Saat 02:00'a kadar dünün verilerini kullan
+      // (Yatsı'nın son işaretlenebilir zamanı 02:00 olduğu için)
+      const now = new Date();
+      if (now.getHours() < 2) {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dd = String(yesterday.getDate()).padStart(2, "0");
+        const mm = String(yesterday.getMonth() + 1).padStart(2, "0");
+        const yyyy = yesterday.getFullYear();
+        targetDateStr = `${dd}.${mm}.${yyyy}`;
+      }
+
+      const key = `completed_prayers_${targetDateStr}`;
       const saved = await AsyncStorage.getItem(key);
       if (saved) {
         setCompletedPrayers(JSON.parse(saved));
@@ -164,20 +179,91 @@ export default function HomeScreen() {
     }
   };
 
-  const togglePrayer = async (prayerName: string) => {
-    // 🛑 GELECEK VAKİT KONTROLÜ
-    // Eğer işaretlenmemişse (yani işaretlemeye çalışıyorsak) ve vakit gelmediyse engelle
+  const loadDismissedCheckins = async () => {
+    try {
+      let targetDateStr = getFormattedDate();
+
+      // 🔥 "AKTİF GÜN" KURALI: Saat 02:00'a kadar dünün verilerini kullan
+      const now = new Date();
+      if (now.getHours() < 2) {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dd = String(yesterday.getDate()).padStart(2, "0");
+        const mm = String(yesterday.getMonth() + 1).padStart(2, "0");
+        const yyyy = yesterday.getFullYear();
+        targetDateStr = `${dd}.${mm}.${yyyy}`;
+      }
+
+      const key = `dismissed_checkins_${targetDateStr}`;
+      const saved = await AsyncStorage.getItem(key);
+      if (saved) {
+        setDismissedCheckins(JSON.parse(saved));
+      } else {
+        setDismissedCheckins([]);
+      }
+    } catch (e) {
+      console.error("Load dismissed error", e);
+    }
+  };
+
+  // Dismiss listesi değişince kaydet
+  useEffect(() => {
+    const saveDismissed = async () => {
+      let targetDateStr = getFormattedDate();
+
+      // 🔥 "AKTİF GÜN" KURALI: Saat 02:00'a kadar dünün tarihine kaydet
+      const now = new Date();
+      if (now.getHours() < 2) {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dd = String(yesterday.getDate()).padStart(2, "0");
+        const mm = String(yesterday.getMonth() + 1).padStart(2, "0");
+        const yyyy = yesterday.getFullYear();
+        targetDateStr = `${dd}.${mm}.${yyyy}`;
+      }
+
+      await AsyncStorage.setItem(`dismissed_checkins_${targetDateStr}`, JSON.stringify(dismissedCheckins));
+    };
+    if (dismissedCheckins.length > 0) saveDismissed();
+  }, [dismissedCheckins]);
+
+  const togglePrayer = async (prayerName: string, skipListUpdate = false) => {
     const isAlreadyCompleted = completedPrayers.includes(prayerName);
 
     if (!isAlreadyCompleted) {
-      const safePrayerTimes = prayerTimes || [];
-      const pIndex = safePrayerTimes.findIndex((p: any) => p.name === prayerName);
-      const tIndex = safePrayerTimes.findIndex((p: any) => p.name === targetPrayer?.name);
+      // 🔥 KONTROL 1: O NAMAZ VAKTİ GİRDİ Mİ?
+      const prayer = prayerTimes?.find((p: any) => p.name === prayerName);
+      if (prayer) {
+        const now = new Date();
+        const [h, m] = prayer.time.split(":").map(Number);
+        const prayerTime = new Date();
+        prayerTime.setHours(h, m, 0, 0);
 
-      // Eğer hedef vakit listedeyse ve tıkladığımız vakit hedef veya sonrasındaysa
-      if (tIndex !== -1 && pIndex >= tIndex) {
-        Alert.alert("Henüz Vakit Girmedi", "Vakti girmemiş namazı kılındı olarak işaretleyemezsiniz.");
-        return;
+        if (now < prayerTime) {
+          Alert.alert("Henüz Vakit Girmedi", `${prayerName} vakti henüz gelmedi. Vakit: ${prayer.time}`);
+          return;
+        }
+      }
+
+      // 🔥 KONTROL 2: SON İŞARETLENEBİLİR ZAMAN GEÇTİ Mİ?
+      const now = new Date();
+      const currentHour = now.getHours();
+
+      if (prayerName === "Yatsı") {
+        // Yatsı için DEADLINE KONTROLÜ YOK
+        // Çünkü "aktif gün" sistemi otomatik hallediyor:
+        // - Saat < 2 → Dünün Yatsı'sı işaretlenebilir (ertesi gün 02:00'a kadar)
+        // - Saat >= 2 → Bugünün verileri, vakit girdi mi kontrolü yeterli
+      } else {
+        // Diğer namazlar için: Gece 00:00'dan sonra deadline geçmiş
+        // (Aktif gün sistemi saat < 2 ise dünün verilerini yüklüyor)
+        if (currentHour >= 0 && currentHour < 2) {
+          Alert.alert(
+            "Süre Doldu",
+            `${prayerName} namazının işaretlenebilir süresi (gece 00:00) dolmuştur.`
+          );
+          return;
+        }
       }
     }
 
@@ -195,9 +281,16 @@ export default function HomeScreen() {
         newStats = prev.filter((p) => p !== prayerName);
         // 📉 GLOBAL: Azalt
         PrayerStatsService.decrementCount(prayerName);
+
+        // 🔥 İŞARETİ KALDIRINCA DİREKT DISMISS ET (Tekrar sormasın)
+        // Kullanıcı kendi eliyle kaldırdıysa, "Kılmadım" demiş sayılır ve prompt çıkmamalı.
+        setDismissedCheckins((dPrev) => {
+          if (!dPrev.includes(prayerName)) return [...dPrev, prayerName];
+          return dPrev;
+        });
       } else {
         newStats = [...prev, prayerName];
-        // 📈 GLOBAL: Artır
+        // 📈 GLOBAL: Artır (Varsa dismiss listesinden çıkarılabilir ama gerek yok, kılındı zaten)
         PrayerStatsService.incrementCount(prayerName);
 
         // 🔥 NAMAZ KILINDI! Varsa kurulmuş hatırlatma bildirimini iptal et
@@ -217,15 +310,24 @@ export default function HomeScreen() {
         });
       }
 
-      // Kaydet
-      const todayStr = getFormattedDate();
-      AsyncStorage.setItem(`completed_prayers_${todayStr}`, JSON.stringify(newStats));
+      // Kaydet - "AKTİF GÜN" mantığıyla
+      let targetDateStr = getFormattedDate();
+      const now = new Date();
+      if (now.getHours() < 2) {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const dd = String(yesterday.getDate()).padStart(2, "0");
+        const mm = String(yesterday.getMonth() + 1).padStart(2, "0");
+        const yyyy = yesterday.getFullYear();
+        targetDateStr = `${dd}.${mm}.${yyyy}`;
+      }
+      AsyncStorage.setItem(`completed_prayers_${targetDateStr}`, JSON.stringify(newStats));
 
       return newStats;
     });
 
-    // Eğer bu vakit listedeyse çıkar
-    if (missedPrayersList.includes(prayerName)) {
+    // Eğer bu vakit listedeyse çıkar (SADECE skipListUpdate FALSE İSE)
+    if (!skipListUpdate && missedPrayersList.includes(prayerName)) {
       const updatedList = missedPrayersList.filter(p => p !== prayerName);
       setMissedPrayersList(updatedList);
       if (updatedList.length === 0) {
@@ -238,46 +340,92 @@ export default function HomeScreen() {
 
   // MODAL ONAY FONKSİYONU
   const confirmMissedPrayers = async () => {
-    // 1. Seçilenleri işaretle
-    selectedInModal.forEach(p => togglePrayer(p));
+    // 0. BOŞ SEÇİM KONTROLÜ
+    if (selectedInModal.length === 0) {
+      Alert.alert("Seçim Yapmadınız", "Lütfen en az bir vakit seçin veya 'Hiçbirini Kılmadım' diyerek geçin.");
+      return;
+    }
 
+    // 1. Seçilenleri işaretle (Listeyi güncelleme, en son toptan temizleyeceğiz)
+    selectedInModal.forEach(p => togglePrayer(p, true));
+
+    // 2. SEÇİLMEYENLERİ (Kılınmadı veya Pas Geçildi) İŞLE
     // 2. SEÇİLMEYENLERİ (Kılınmadı veya Pas Geçildi) İŞLE
     const unselected = missedPrayersList.filter(p => !selectedInModal.includes(p));
 
     if (unselected.length > 0) {
       const now = new Date();
       for (const prayer of unselected) {
-        let isExpired = false;
-        // -- Expirecheck Logic (Duplicate code above reduced here) --
+        // 🔥 KONTROL 1: O NAMAZ VAKTİ GİRDİ Mİ?
+        const prayerData = prayerTimes?.find((p: any) => p.name === prayer);
+        if (!prayerData) continue; // Prayer not found, skip
+
+        const [h, m] = prayerData.time.split(":").map(Number);
+        const prayerTime = new Date();
+        prayerTime.setHours(h, m, 0, 0);
+
+        // Eğer vakit henüz gelmemişse → Bildirim kurma (mantıksız)
+        if (now < prayerTime) {
+          setDismissedCheckins((prev) => [...prev, prayer]);
+          continue;
+        }
+
+        // 🔥 KONTROL 2: DEADLINE GEÇTİ Mİ?
+        let deadlinePassed = false;
+        const currentHour = now.getHours();
+
+        if (prayer === "Yatsı") {
+          // Yatsı için deadline yok (aktif gün sistemi hallediyor)
+          deadlinePassed = false;
+        } else {
+          // Diğer namazlar: Gece 00:00-01:59 arası deadline geçmiş
+          if (currentHour >= 0 && currentHour < 2) {
+            deadlinePassed = true;
+          }
+        }
+
+        // Eğer deadline geçtiyse → Bildirim kurma
+        if (deadlinePassed) {
+          setDismissedCheckins((prev) => [...prev, prayer]);
+          continue;
+        }
+
+        // 🔥 KONTROL 3: BİR SONRAKİ VAKİT GİRDİ Mİ? (Vakit penceresi kapandı mı?)
+        let windowClosed = false;
+
         if (prayerTimes) {
           const currentIndex = prayerTimes.findIndex((p: any) => p.name === prayer);
+
           if (currentIndex !== -1 && currentIndex < prayerTimes.length - 1) {
             const nextPrayer = prayerTimes[currentIndex + 1];
             const [nh, nm] = nextPrayer.time.split(":").map(Number);
             const nextDate = new Date();
             nextDate.setHours(nh, nm, 0, 0);
-            if (now >= nextDate) isExpired = true;
+            if (now >= nextDate) windowClosed = true;
           }
         }
 
-        // Kılınmadı olarak işaretlendi ama vakti geçtiyse -> Bildirim yok, sadece dismiss listesine ekle
-        if (!isExpired) {
-          // Vakti hala var -> Bildirim kur
-          const scheduledTime = new Date(Date.now() + 45 * 60 * 1000);
-          try {
-            const id = await Notifications.scheduleNotificationAsync({
-              content: { title: "Hatırlatma", body: `${prayer} namazını kıldın mı?`, sound: true },
-              trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: scheduledTime },
-            });
-            // Save ID logic...
-            const stored = await AsyncStorage.getItem("pending_checkin_notifications");
-            const pending = stored ? JSON.parse(stored) : {};
-            pending[prayer] = id;
-            await AsyncStorage.setItem("pending_checkin_notifications", JSON.stringify(pending));
-          } catch (e) {
-            console.warn(e);
-          }
+        // Eğer bir sonraki vakit girdiyse → Bildirim kurma (artık o vakit geçmiş sayılır)
+        if (windowClosed) {
+          setDismissedCheckins((prev) => [...prev, prayer]);
+          continue;
         }
+
+        // ✅ TÜM KONTROLLER GEÇTİ → 45dk sonra bildirim kur
+        const scheduledTime = new Date(Date.now() + 45 * 60 * 1000);
+        try {
+          const id = await Notifications.scheduleNotificationAsync({
+            content: { title: "Hatırlatma", body: `${prayer} namazını kıldın mı?`, sound: true },
+            trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: scheduledTime },
+          });
+          const stored = await AsyncStorage.getItem("pending_checkin_notifications");
+          const pending = stored ? JSON.parse(stored) : {};
+          pending[prayer] = id;
+          await AsyncStorage.setItem("pending_checkin_notifications", JSON.stringify(pending));
+        } catch (e) {
+          console.warn(e);
+        }
+
         // Her halükarda dismiss listesine ekle ki tekrar sormasın
         setDismissedCheckins((prev) => [...prev, prayer]);
       }
@@ -407,6 +555,15 @@ export default function HomeScreen() {
 
           // Eğer zamanı geldiyse veya geçtiyse (but not too old) -> SHOW IMMEDIATELY
           if (scheduledTime <= now) {
+            // 🔥 YENİ KONTROL: Eğer üzerinden 1 dakikadan fazla geçtiyse gösterme (Süresi geçti)
+            const diffMs = now.getTime() - scheduledTime.getTime();
+            if (diffMs > 60000) {
+              // Süresi geçmiş, sadece listeye ekle ki tekrar bakmasın
+              updatedIds.push(docId);
+              hasChanges = true;
+              continue;
+            }
+
             // Show immediately (Banner or Modal)
             if (data.displayType === "banner") {
               await Notifications.scheduleNotificationAsync({
@@ -471,10 +628,65 @@ export default function HomeScreen() {
     if (!prayerTimes || prayerTimes.length === 0) return;
 
     const hijri = getHijriDateString();
-    setIsRamadan(hijri.includes("Ramazan") || hijri.includes("Ramazan"));
+    setIsRamadan(hijri.includes("Ramazan"));
+
+    // 🔥 AKTİF GÜN ETİKETİNİ HESAPLA
+    const now = new Date();
+    if (now.getHours() < 2) {
+      // Saat 00:00-01:59 arası → Dünün verileri gösteriliyor
+      setActiveDayLabel("Dün");
+    } else {
+      // Normal saat → Bugünün verileri
+      setActiveDayLabel("Bugün");
+    }
 
     // Günlük sözü hemen set et
     setTodaysQuote(DAILY_QUOTES[new Date().getDate() % DAILY_QUOTES.length]);
+
+    // 🔥 GÜN SONU HATIRLATMA SİSTEMİ (Saat 23:00)
+    const checkEndOfDayReminder = async () => {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+
+      // Sadece saat 23:00-23:59 arasında kontrol et
+      if (currentHour !== 23) return;
+
+      // Bugün için zaten gönderildi mi kontrol et
+      const todayStr = getFormattedDate();
+      const sentKey = `eod_reminder_sent_${todayStr}`;
+      const alreadySent = await AsyncStorage.getItem(sentKey);
+      if (alreadySent === "true") return; // Zaten gönderilmiş
+
+      // Kılınmamış namazları bul (Güneş hariç)
+      const allPrayers = prayerTimes.filter((p: any) => p.name !== "Güneş").map((p: any) => p.name);
+      const missed = allPrayers.filter(p => !completedPrayers.includes(p));
+
+      // Eğer hepsi kılındıysa bildirim gönderme
+      if (missed.length === 0) return;
+
+      // Bildirim içeriği hazırla
+      const missedList = missed.join(", ");
+      const title = "🕌 Gün Bitmeden Hatırlatma";
+      const body = `Bugün şu namazları kılmayı unuttunuz: ${missedList}.\n\nGün bitmeden kazaya kalmadan kılabilirsiniz. 🤲`;
+
+      // Bildirim gönder
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title,
+          body,
+          sound: true,
+          data: { displayType: "banner" }, // Banner olarak göster
+        },
+        trigger: null, // Hemen göster
+      });
+
+      // Kaydı işaretle ki tekrar göndermesin
+      await AsyncStorage.setItem(sentKey, "true");
+    };
+
+    checkEndOfDayReminder();
+    //   }, [prayerTimes, completedPrayers]);
 
     const timerId = setInterval(() => {
       const currentTarget = calculateNextPrayer(prayerTimes) as any;
@@ -777,8 +989,14 @@ export default function HomeScreen() {
                       <Text style={[styles.vakitBadgeText, { fontFamily: FONTS.bold }]}>
                         {isRamadan && targetPrayer?.name === "Akşam"
                           ? "İFTARA KALAN SÜRE"
-                          : `SIRADAKİ: ${targetPrayer?.name?.toUpperCase() || "BEKLENİYOR..."
-                          }`}
+                          : (() => {
+                            const prayerName = targetPrayer?.name?.toUpperCase() || "BEKLENİYOR...";
+                            // İmsak sıradaysa ve saat >= 2 ise (yeni günün verilerindeyiz) → YARIN ekle
+                            const now = new Date();
+                            const isTomorrow = prayerName === "İMSAK" && now.getHours() >= 2;
+                            return `SIRADAKİ: ${prayerName}${isTomorrow ? " (YARIN)" : ""}`;
+                          })()
+                        }
                       </Text>
                     </View>
                     <Text style={[styles.prayerTimeValue, { fontFamily: FONTS.medium }]}>{time}</Text>
@@ -820,7 +1038,7 @@ export default function HomeScreen() {
                   {/* 🔥 MOOD SELECTOR */}
 
 
-                  <Text style={styles.listTitle}>Bugünün Vakitleri</Text>
+                  <Text style={styles.listTitle}>{activeDayLabel} Vakitleri</Text>
                   <FlatList
                     ref={flatListRef}
                     data={prayerTimes}
@@ -874,7 +1092,7 @@ export default function HomeScreen() {
                                     styles.prayerName,
                                     isNext && { color: "#FFF", fontFamily: FONTS.bold },
                                     !isNext && { fontFamily: FONTS.medium },
-                                    isCompleted && { color: "#10B981", textDecorationLine: "line-through" } // Strikethrough for effect
+                                    isCompleted && { color: "#10B981" } // Strikethrough for effect
                                   ]}
                                 >
                                   {item.name}
@@ -1031,16 +1249,23 @@ export default function HomeScreen() {
                 activeOpacity={0.8}
                 onPress={() => {
                   if (currentCheckingPrayer === 'multiple') {
+                    if (selectedInModal.length === 0) return; // Disable press
                     confirmMissedPrayers();
                   } else if (currentCheckingPrayer) {
-                    // Tekli mod (Eski usul devam veya bunu da seçime dahil edebiliriz ama basitlik için direkt toggle)
                     togglePrayer(currentCheckingPrayer);
-                    // Dismiss others logic yok burada çünkü tek bu var
                     setMissedPrayersList([]);
                     setCurrentCheckingPrayer(null);
                   }
                 }}
-                style={[styles.premiumButton, { backgroundColor: '#10B981', marginBottom: 12, width: '80%' }]}
+                style={[
+                  styles.premiumButton,
+                  {
+                    backgroundColor: '#10B981',
+                    marginBottom: 12,
+                    width: '80%',
+                    opacity: currentCheckingPrayer === 'multiple' && selectedInModal.length === 0 ? 0.5 : 1 // 👈 Opacity change
+                  }
+                ]}
               >
                 <Text style={[styles.premiumButtonText, { color: '#FFF' }]}>
                   {currentCheckingPrayer === 'multiple' ? "SEÇİLENLERİ KAYDET" : "EVET, KILDIM"}

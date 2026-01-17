@@ -2,6 +2,7 @@
   "expo": {
     "name": "İmsakiye Pro",
     "slug": "imsakiye-pro",
+    "privacyPolicy": "https://imsakiyepro.github.io/imsakiye-pro/privacy-policy-en",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo-optimized.png",
@@ -21,9 +22,10 @@
       "icon": "./assets/logo-optimized.png",
       "supportsTablet": false,
       "bundleIdentifier": "com.tunahankzlbg.imsakiye",
-      "buildNumber": "7",
+      "buildNumber": "9",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Bulunduğunuz konuma özel namaz vakitlerini hesaplamak, Kıble yönünü belirlemek ve size en yakın camileri göstermek için konum izni gereklidir.",
+        "NSLocationWhenInUseUsageDescription": "İmsakiye Pro uygulaması, bulunduğunuz konuma özel namaz vakitlerini doğru hesaplayabilmek, Kıble yönünü gösterebilmek ve size en yakın camileri listeleyebilmek için konum bilginizi kullanmak ister. Lütfen konum izni vererek daha iyi bir deneyim elde edin.",
+        "NSMotionUsageDescription": "Kıble pusulasının hassas çalışabilmesi için hareket sensörü verilerine erişim izni rica ediyoruz.",
         "UIBackgroundModes": [
           "remote-notification",
           "fetch"
@@ -33,7 +35,7 @@
     },
     "android": {
       "package": "com.tunahankzlbg.imsakiye",
-      "versionCode": 7,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo-optimized.png",
         "backgroundColor": "#05140A"
@@ -76,7 +78,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Bulunduğunuz konuma özel namaz vakitlerini hesaplamak, Kıble yönünü belirlemek ve size en yakın camileri göstermek için konum izni gereklidir."
+          "locationWhenInUsePermission": "İmsakiye Pro uygulaması, bulunduğunuz konuma özel namaz vakitlerini doğru hesaplayabilmek, Kıble yönünü gösterebilmek ve size en yakın camileri listeleyebilmek için konum bilginizi kullanmak ister. Lütfen konum izni vererek daha iyi bir deneyim elde edin."
         }
       ],
       [

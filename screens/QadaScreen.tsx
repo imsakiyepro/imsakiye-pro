@@ -5,13 +5,13 @@ import {
     StyleSheet,
     TouchableOpacity,
     Dimensions,
-    SafeAreaView,
     ScrollView,
     StatusBar,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
     Outfit_400Regular,
     Outfit_500Medium,
@@ -47,6 +47,7 @@ const PRAYER_types = [
 ];
 
 export default function QadaScreen({ navigation }: any) {
+    const insets = useSafeAreaInsets();
     const [qadaStats, setQadaStats] = useState<{ [key: string]: number }>({});
     const [loading, setLoading] = useState(true);
 
@@ -128,7 +129,7 @@ export default function QadaScreen({ navigation }: any) {
                 style={styles.background}
             />
 
-            <SafeAreaView style={{ flex: 1 }}>
+            <View style={{ flex: 1, paddingTop: insets.top }}>
                 {/* HEADER */}
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -150,7 +151,7 @@ export default function QadaScreen({ navigation }: any) {
                         </Text>
                     </View>
                 </ScrollView>
-            </SafeAreaView>
+            </View>
         </View>
     );
 }

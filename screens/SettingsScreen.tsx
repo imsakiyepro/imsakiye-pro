@@ -22,6 +22,7 @@ import {
     Pressable,
     Platform,
     Dimensions,
+    Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -352,9 +353,7 @@ export default function SettingsScreen() {
             <View style={styles.overlay}>
                 <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
                     <Text style={styles.headerTitle}>Ayarlar</Text>
-                    <Text style={{ color: "#FFF", fontSize: 12, marginTop: 4 }}>
-                        ID: {getDeviceId()}
-                    </Text>
+
                 </View>
                 <ScrollView
                     contentContainerStyle={{
@@ -417,8 +416,27 @@ export default function SettingsScreen() {
                             onPress={() =>
                                 Share.share({
                                     message: "İmsakiye Pro'yu indir! En doğru vakitler cebinde.",
+                                    url: "https://apps.apple.com/app/idYOUR_APP_ID", // 👈 LOGO GÖRÜNMESİ İÇİN LİNK GEREKLİ
                                 })
                             }
+                        />
+
+                        <View style={styles.separator} />
+                        <SettingRow
+                            icon="shield-checkmark-outline"
+                            title="Gizlilik Politikası"
+                            subtitle="Veri koruma ve gizlilik"
+                            onPress={() => navigation.navigate("PrivacyPolicy")}
+                        // URL (GitHub Pages): https://imsakiyepro.github.io/imsakiye-pro/privacy-policy-tr
+                        />
+
+                        <View style={styles.separator} />
+                        <SettingRow
+                            icon="document-text-outline"
+                            title="Kullanım Şartları"
+                            subtitle="Hizmet kullanım koşulları"
+                            onPress={() => navigation.navigate("TermsOfService")}
+                        // URL (GitHub Pages): https://imsakiyepro.github.io/imsakiye-pro/terms-of-service-tr
                         />
 
                         {/* GİZLİ ADMIN BUTONU (Sadece Adminler Görür) */}
