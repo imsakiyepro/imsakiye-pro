@@ -1366,5 +1366,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.extraBold, // OUTFIT FONT
     letterSpacing: 1,
     textTransform: "uppercase",
+    textAlign: "center",
   },
 });
