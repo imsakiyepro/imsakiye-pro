@@ -2,7 +2,6 @@
   "expo": {
     "name": "İmsakiye Pro",
     "slug": "imsakiye-pro",
-    "privacyPolicy": "https://imsakiyepro.github.io/imsakiye-pro/privacy-policy-en",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo-optimized.png",
@@ -22,7 +21,7 @@
       "icon": "./assets/logo-optimized.png",
       "supportsTablet": false,
       "bundleIdentifier": "com.imsakiyepro.imsakiye",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "İmsakiye Pro uygulaması, bulunduğunuz konuma özel namaz vakitlerini doğru hesaplayabilmek, Kıble yönünü gösterebilmek ve size en yakın camileri listeleyebilmek için konum bilginizi kullanmak ister. Lütfen konum izni vererek daha iyi bir deneyim elde edin.",
         "NSMotionUsageDescription": "Kıble pusulasının hassas çalışabilmesi için hareket sensörü verilerine erişim izni rica ediyoruz.",
@@ -35,7 +34,7 @@
     },
     "android": {
       "package": "com.imsakiyepro.imsakiye",
-      "versionCode": 1,
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo-optimized.png",
         "backgroundColor": "#05140A"
