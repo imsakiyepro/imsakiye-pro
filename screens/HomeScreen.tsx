@@ -63,6 +63,7 @@ import { wp, hp, rf, SCREEN_WIDTH, SCREEN_HEIGHT } from "../src/utils/responsive
 const { width, height } = Dimensions.get("window");
 
 export default function HomeScreen() {
+  const isReminderSending = useRef(false);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute<any>(); // Route hook'u ekledik
@@ -652,37 +653,54 @@ export default function HomeScreen() {
       // Sadece saat 23:00-23:59 arasında kontrol et
       if (currentHour !== 23) return;
 
-      // Bugün için zaten gönderildi mi kontrol et
-      const todayStr = getFormattedDate();
-      const sentKey = `eod_reminder_sent_${todayStr}`;
-      const alreadySent = await AsyncStorage.getItem(sentKey);
-      if (alreadySent === "true") return; // Zaten gönderilmiş
+      // 🔥 RACE CONDITION ÖNLEME
+      if (isReminderSending.current) return;
+      isReminderSending.current = true;
 
-      // Kılınmamış namazları bul (Güneş hariç)
-      const allPrayers = prayerTimes.filter((p: any) => p.name !== "Güneş").map((p: any) => p.name);
-      const missed = allPrayers.filter(p => !completedPrayers.includes(p));
+      try {
+        // Bugün için zaten gönderildi mi kontrol et
+        const todayStr = getFormattedDate();
+        const sentKey = `eod_reminder_sent_${todayStr}`;
+        const alreadySent = await AsyncStorage.getItem(sentKey);
 
-      // Eğer hepsi kılındıysa bildirim gönderme
-      if (missed.length === 0) return;
+        if (alreadySent === "true") {
+          isReminderSending.current = false;
+          return;
+        }
 
-      // Bildirim içeriği hazırla
-      const missedList = missed.join(", ");
-      const title = "🕌 Gün Bitmeden Hatırlatma";
-      const body = `Bugün şu namazları kılmayı unuttunuz: ${missedList}.\n\nGün bitmeden kazaya kalmadan kılabilirsiniz. 🤲`;
+        // Kılınmamış namazları bul (Güneş hariç)
+        const allPrayers = prayerTimes.filter((p: any) => p.name !== "Güneş").map((p: any) => p.name);
+        const missed = allPrayers.filter(p => !completedPrayers.includes(p));
 
-      // Bildirim gönder
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title,
-          body,
-          sound: true,
-          data: { displayType: "banner" }, // Banner olarak göster
-        },
-        trigger: null, // Hemen göster
-      });
+        // Eğer hepsi kılındıysa bildirim gönderme
+        if (missed.length === 0) {
+          isReminderSending.current = false;
+          return;
+        }
 
-      // Kaydı işaretle ki tekrar göndermesin
-      await AsyncStorage.setItem(sentKey, "true");
+        // Bildirim içeriği hazırla
+        const missedList = missed.join(", ");
+        const title = "🕌 Gün Bitmeden Hatırlatma";
+        const body = `Bugün şu namazları kılmayı unuttunuz: ${missedList}.\n\nGün bitmeden kazaya kalmadan kılabilirsiniz. 🤲`;
+
+        // Bildirim gönder
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title,
+            body,
+            sound: true,
+            data: { displayType: "banner" }, // Banner olarak göster
+          },
+          trigger: null, // Hemen göster
+        });
+
+        // Kaydı işaretle ki tekrar göndermesin
+        await AsyncStorage.setItem(sentKey, "true");
+      } catch (e) {
+        console.log("Hatırlatma hatası:", e);
+      } finally {
+        isReminderSending.current = false;
+      }
     };
 
     checkEndOfDayReminder();
